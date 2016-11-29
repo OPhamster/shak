@@ -2,16 +2,8 @@ import java.util.*;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-//import twitter4j.TwitterFactory;
-//import twitter4j.Twitter;
-//import twitter4j.Trends;
-//import twitter4j.Status;
-//import twitter4j.Query;
-//import twitter4j.QueryResult;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
-import java.io.*;
-import java.lang.*;
 import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitProducer {
@@ -39,18 +31,20 @@ public class TwitProducer {
 		return kafkaProps;	
 	}
 	private static void getTweets(String topicName,Producer<String, String> producer,Twitter twitter,String trendTopic) throws Exception {
+		// Return 50 tweets for each trending Topic 		
 		Query query = new Query(trendTopic.toString());
-		query.count(50);
+		// set number of tweets retrieved to 50		
+		query.setCount(50);
 		QueryResult result;
-		do {
-			result = twitter.search(query);
-		        List<Status> tweets = result.getTweets();
-		        for (Status tweet : tweets) {
-		            	//System.out.println("@" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-				String userTweet = trendTopic.toString()+":"+tweet.getUser().getScreenName()+"-"+tweet.getText()+";";
-				producer.send(new ProducerRecord<String, String>(topicName,trendTopic,userTweet));	
-		        }
-		} while ((query = result.nextQuery()) != null);
+		result = twitter.search(query);
+		List<Status> tweets = result.getTweets();
+		for (Status tweet : tweets) {
+			// This format will ease the processing down the pipeline
+			// format-> #TOPIC:USER_NAME-TEXT;
+			String userTweet = trendTopic.toString()+":"+tweet.getUser().getScreenName()+"-"+tweet.getText()+";";
+			producer.send(new ProducerRecord<String, String>(topicName,trendTopic,userTweet));	
+			// set topics as key values		
+		}
 	}
 	public static void main(String[] args) throws Exception{   
       		// Producer code	
@@ -64,16 +58,13 @@ public class TwitProducer {
             	
 		//Twitter oAuth
 		TwitterFactory factory = twitterConfig();
-		//Twitter : get top global trends - and send their tweets
 		Twitter twitter = factory.getInstance();
+		//Twitter : get top global trends
 		Trends globTrends = twitter.getPlaceTrends(1);
+		//For each topic retrieve tweets		
 		for (int i =0; i < globTrends.getTrends().length; i++) {
-			//producer.send(new ProducerRecord<String, String>(topicName,Integer.toString(i),globTrends.getTrends()[i].getName()));
 			getTweets(topicName,producer,twitter,globTrends.getTrends()[i].getName());			
-			//System.out.println(globTrends.getTrends()[i].getName());	
 		}
-		//		
-		//System.out.println("Message sent successfully");
        		producer.close();
    	}
 }
