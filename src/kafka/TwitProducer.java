@@ -41,18 +41,14 @@ public class TwitProducer {
 		for (Status tweet : tweets) {
 			// This format will ease the processing down the pipeline
 			// format-> #TOPIC:USER_NAME-TEXT;
-			String userTweet = trendTopic.toString()+":"+tweet.getUser().getScreenName()+"-"+tweet.getText()+";";
+			String userTweet = tweet.getUser().getScreenName()+"-"+tweet.getText();
 			producer.send(new ProducerRecord<String, String>(topicName,trendTopic,userTweet));	
 			// set topics as key values		
 		}
 	}
 	public static void main(String[] args) throws Exception{   
       		// Producer code	
-      		if(args.length == 0){
-         		System.out.println("Enter topic name");
-         		return;
-      		}
-	      	String topicName = args[0].toString();
+	      	String topicName = "Hello-Kafka";
 		Properties kafkaProps = producerConfig();
       		Producer<String, String> producer = new KafkaProducer<String, String>(kafkaProps);
             	
