@@ -41,7 +41,7 @@ public class TwitProducer {
 		for (Status tweet : tweets) {
 			// This format will ease the processing down the pipeline
 			// format-> #TOPIC:USER_NAME-TEXT;
-			String userTweet = tweet.getUser().getScreenName()+"-"+tweet.getText();
+			String userTweet = tweet.getUser().getScreenName()+" -> "+tweet.getText();
 			producer.send(new ProducerRecord<String, String>(topicName,trendTopic,userTweet));	
 			// set topics as key values		
 		}
@@ -56,7 +56,7 @@ public class TwitProducer {
 		TwitterFactory factory = twitterConfig();
 		Twitter twitter = factory.getInstance();
 		//Twitter : get top global trends
-		Trends globTrends = twitter.getPlaceTrends(1);
+		Trends globTrends = twitter.getPlaceTrends(23424977);
 		//For each topic retrieve tweets		
 		for (int i =0; i < globTrends.getTrends().length; i++) {
 			getTweets(topicName,producer,twitter,globTrends.getTrends()[i].getName());			

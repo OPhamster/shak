@@ -4,6 +4,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+
 public class TwitConsumer {
 	private static Properties consumerConfig() {
 		Properties consumerProps = new Properties();
@@ -28,13 +29,16 @@ public class TwitConsumer {
       
       		//print the topic name
       		System.out.println("Subscribed to topic " + topicName);
-      		int i = 0;
-      
+      		NLP.init();
       		while (true) {
          		ConsumerRecords<String, String> records = consumer.poll(100);
          		for (ConsumerRecord<String, String> record : records) {
-		         	// print the offset,key and value for the consumer records.
-	       			System.out.printf("key = %s, value = %s\n", record.key(), record.value());
+		         	// print the key and value for the consumer records.
+		         	String userTweet = record.value();
+		         	int tweetBegin = userTweet.indexOf("->");
+	       			int score = NLP.findSentiment(userTweet.substring(tweetBegin+1));
+	       			System.out.printf("key = %s, text = %s: score = %d\n", record.key(), record.value(),score);
+	       			
 			}
       		}
    	}
